@@ -709,37 +709,16 @@
 
     const API_KEY = getApiKey();
 
-    async function fetchIDX(endpoint) {
-      // Try multiple CORS proxies in order
-      const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent('https://api.idxbroker.com/' + endpoint)}`,
-        `https://corsproxy.io/?${encodeURIComponent('https://api.idxbroker.com/' + endpoint)}`,
-        `https://proxy.cors.sh/https://api.idxbroker.com/${endpoint}`
-      ];
-
-      let lastError = null;
-      for (const url of proxies) {
-        try {
-          const res = await fetch(url, {
-            headers: {
-              'accesskey': API_KEY,
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'x-requested-with': 'XMLHttpRequest'
-            }
-          });
-          if (res.status === 204) return null;
-          if (res.status === 200) {
-            const text = await res.text();
-            if (!text || text.trim() === '') return null;
-            try { return JSON.parse(text); } catch { return null; }
-          }
-          lastError = new Error(`${res.status}`);
-        } catch (e) {
-          lastError = e;
-          continue;
-        }
+async function fetchIDX(endpoint) {
+      const url = `https://the-one-idx-proxy.rchavezts.workers.dev/?apikey=${API_KEY}&endpoint=${endpoint}`;
+      const res = await fetch(url);
+      if (res.status === 204) return null;
+      if (res.status === 200) {
+        const text = await res.text();
+        if (!text || text.trim() === '') return null;
+        try { return JSON.parse(text); } catch { return null; }
       }
-      throw lastError || new Error('All proxies failed');
+      throw new Error(`${res.status}`);
     }
 
     function setTile(id, value) {
