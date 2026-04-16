@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IDX Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #0d3b6e;
+      --accent: #c41230;
+      --blue: #2c80cc;
+      --bg: #f5f6f8;
+      --white: #ffffff;
+      --border: #e4e7ec;
+      --text: #1a2333;
+      --muted: #6b7a94;
+      --success: #16a34a;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+      --shadow-hover: 0 4px 12px rgba(0,0,0,0.1), 0 8px 32px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    .header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 60%, var(--blue) 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-icon svg { width: 16px; height: 16px; fill: white; }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .refresh-btn:hover { background: #0a2d56; }
+    .refresh-btn svg { width: 14px; height: 14px; fill: white; }
+
+    /* STATUS BAR */
+    .status-bar {
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+
+    .status-dot.live { background: var(--success); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+    .status-text { color: var(--muted); font-weight: 500; }
+
+    /* MAIN */
+    .main { padding: 0 28px 40px; }
+
+    /* TILES */
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1100px) { .tiles-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 800px) { .tiles-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .tile {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s, transform 0.2s;
+      cursor: default;
+    }
+
+    .tile:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-1px);
+    }
+
+    .tile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .tile-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .tile-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tile-icon svg { width: 15px; height: 15px; }
+
+    .tile-icon.blue { background: #eff6ff; }
+    .tile-icon.blue svg { fill: var(--blue); }
+    .tile-icon.red { background: #fff1f2; }
+    .tile-icon.red svg { fill: var(--accent); }
+    .tile-icon.navy { background: #eff3f9; }
+    .tile-icon.navy svg { fill: var(--brand); }
+    .tile-icon.green { background: #f0fdf4; }
+    .tile-icon.green svg { fill: var(--success); }
+    .tile-icon.orange { background: #fff7ed; }
+    .tile-icon.orange svg { fill: #ea580c; }
+    .tile-icon.purple { background: #faf5ff; }
+    .tile-icon.purple svg { fill: #7c3aed; }
+
+    .tile-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+    }
+
+    .tile-value.loading {
+      color: var(--border);
+      animation: pulse 1.5s infinite;
+    }
+
+    .tile-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* FILTER BAR */
+    .filter-bar {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .search-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 15px;
+      height: 15px;
+      fill: var(--muted);
+    }
+
+    .search-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px 8px 36px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: var(--blue); background: white; }
+    .search-input::placeholder { color: var(--muted); }
+
+    .create-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .create-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .create-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
+    /* ACTIVITY SECTION */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+
+    .section-count {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px 10px;
+    }
+
+    /* ACTIVITY CARDS */
+    .activity-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 1000px) { .activity-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .activity-grid { grid-template-columns: 1fr; } }
+
+    .activity-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .activity-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .card-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background: linear-gradient(135deg, #e2e8f0, #f1f5f9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .card-image-placeholder {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .card-image-placeholder svg { width: 32px; height: 32px; fill: #cbd5e1; }
+    .card-image-placeholder span { font-size: 11px; color: #94a3b8; font-weight: 500; }
+
+    .card-body { padding: 14px 16px; }
+
+    .card-type {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .card-type-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .card-type-badge svg { width: 12px; height: 12px; fill: currentColor; }
+    .card-type-badge.saved { color: var(--accent); }
+    .card-type-badge.registration { color: var(--success); }
+
+    .card-views {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .card-views svg { width: 11px; height: 11px; fill: var(--muted); }
+
+    .card-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .card-address {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    .card-email {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-style: italic;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-lead {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .card-lead-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand), var(--blue));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .card-time {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .card-action {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 9px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-right: 1px solid var(--border);
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .card-action:last-child { border-right: none; }
+    .card-action:hover { background: var(--bg); color: var(--brand); }
+    .card-action svg { width: 12px; height: 12px; fill: currentColor; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .empty-icon svg { width: 24px; height: 24px; fill: #94a3b8; }
+    .empty-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .empty-sub { font-size: 13px; color: var(--muted); max-width: 320px; line-height: 1.6; }
+
+    /* ERROR STATE */
+    .error-banner {
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #be123c;
+      font-weight: 500;
+    }
+
+    .error-banner.show { display: flex; }
+    .error-banner svg { width: 16px; height: 16px; fill: #be123c; flex-shrink: 0; }
+
+    /* LOADING SKELETON */
+    .skeleton {
+      background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="white" stroke-width="2"/></svg>
+      </div>
+      <span class="header-title">IDX Dashboard</span>
+    </div>
+    <div class="header-right">
+      <div class="date-range">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Last 30 days
+      </div>
+      <button class="refresh-btn" onclick="loadDashboard()">
+        <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- STATUS -->
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="status-text" id="statusText">Connecting to IDX Broker...</span>
+    </div>
+
+    <!-- ERROR BANNER -->
+    <div class="error-banner" id="errorBanner">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="white" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="white" stroke-width="2"/></svg>
+      <span id="errorMsg">Unable to connect to IDX Broker. Check that the API key is configured correctly.</span>
+    </div>
+
+    <!-- STAT TILES -->
+    <div class="tiles-grid">
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Latest Activity</span>
+          <div class="tile-icon blue">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-activity">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Listing Views</span>
+          <div class="tile-icon navy">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-views">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Recent Searches</span>
+          <div class="tile-icon blue">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-searches">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Saved Properties</span>
+          <div class="tile-icon red">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-saved">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Saved Searches</span>
+          <div class="tile-icon purple">
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-savedSearches">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Viewed Saved Link</span>
+          <div class="tile-icon orange">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-links">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">New Leads</span>
+          <div class="tile-icon green">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-leads">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+
+      <div class="tile">
+        <div class="tile-header">
+          <span class="tile-label">Anonymous Activity</span>
+          <div class="tile-icon navy">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+        </div>
+        <div class="tile-value" id="tile-anon">—</div>
+        <div class="tile-sub">Last 30 days</div>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" type="text" placeholder="Search for lead..." id="leadSearch" oninput="filterActivity()" />
+      </div>
+      <button class="create-btn" onclick="window.open('https://middleware.idxbroker.com/mgmt/leadlist', '_blank')">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Lead
+      </button>
+    </div>
+
+    <!-- LATEST ACTIVITY -->
+    <div class="section-header">
+      <span class="section-title">Latest Activity</span>
+      <span class="section-count" id="activityCount">0 events</span>
+    </div>
+
+    <div class="activity-grid" id="activityGrid">
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <div class="empty-title">No activity yet</div>
+        <div class="empty-sub">Lead activity from IDX Broker will appear here once leads are registered and browsing listings.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Get API key from URL param or GHL custom value injected at embed time
+    function getApiKey() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('apikey') || '';
+    }
+
+    const API_KEY = getApiKey();
+    const PROXY = 'https://corsproxy.io/?';
+
+    async function fetchIDX(endpoint) {
+      const url = `${PROXY}${encodeURIComponent('https://api.idxbroker.com/' + endpoint)}`;
+      const res = await fetch(url, {
+        headers: { 'accesskey': API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' }
+      });
+      if (res.status === 204) return null;
+      if (!res.ok) throw new Error(`${res.status}`);
+      return res.json();
+    }
+
+    function setTile(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value !== null && value !== undefined ? value : '0';
+    }
+
+    function setStatus(live, text) {
+      document.getElementById('statusDot').className = 'status-dot' + (live ? ' live' : '');
+      document.getElementById('statusText').textContent = text;
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorBanner');
+      document.getElementById('errorMsg').textContent = msg;
+      el.classList.add('show');
+    }
+
+    let allActivity = [];
+
+    function filterActivity() {
+      const q = document.getElementById('leadSearch').value.toLowerCase();
+      const filtered = q ? allActivity.filter(a =>
+        (a.leadName || '').toLowerCase().includes(q) ||
+        (a.address || '').toLowerCase().includes(q) ||
+        (a.email || '').toLowerCase().includes(q)
+      ) : allActivity;
+      renderActivity(filtered);
+    }
+
+    function renderActivity(items) {
+      const grid = document.getElementById('activityGrid');
+      document.getElementById('activityCount').textContent = `${items.length} event${items.length !== 1 ? 's' : ''}`;
+
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <div class="empty-title">No activity yet</div>
+            <div class="empty-sub">Lead activity from IDX Broker will appear here once leads are registered and browsing listings.</div>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map(a => {
+        const isRegistration = a.type === 'registration';
+        const isSaved = a.type === 'saved';
+        const typeLabel = isRegistration ? 'Registration' : isSaved ? 'Saved Property' : 'Viewed Listing';
+        const typeClass = isRegistration ? 'registration' : isSaved ? 'saved' : '';
+        const typeIcon = isRegistration
+          ? `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`
+          : isSaved
+          ? `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`
+          : `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+
+        const initials = (a.leadName || 'L').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+
+        return `
+        <div class="activity-card">
+          ${a.imageUrl
+            ? `<img class="card-image" src="${a.imageUrl}" alt="Property" onerror="this.outerHTML='<div class=\'card-image-placeholder\'><svg viewBox=\'0 0 24 24\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><polyline points=\'21 15 16 10 5 21\'/></svg><span>No Image</span></div>'">`
+            : `<div class="card-image-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>No Image</span></div>`
+          }
+          <div class="card-body">
+            <div class="card-type">
+              <span class="card-type-badge ${typeClass}">${typeIcon}${typeLabel}</span>
+              ${a.views ? `<span class="card-views"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${a.views}</span>` : ''}
+            </div>
+            ${a.price ? `<div class="card-price">${a.price}</div>` : ''}
+            ${a.address ? `<div class="card-address">${a.address}</div>` : ''}
+            ${a.email ? `<div class="card-email">${a.email}</div>` : ''}
+            <div class="card-meta">
+              <div class="card-lead">
+                <div class="card-lead-dot">${initials}</div>
+                ${a.leadName || 'Unknown Lead'}
+              </div>
+              <span class="card-time">${a.timeAgo || ''}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="card-action" onclick="window.open('mailto:${a.email || ''}')">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Email
+            </button>
+            <button class="card-action">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 01.02 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92v2z"/></svg>
+              Call
+            </button>
+            <button class="card-action">
+              <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              SMS
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function loadDashboard() {
+      if (!API_KEY) {
+        setStatus(false, 'No API key configured');
+        showError('No IDX Broker API key found. Add ?apikey=YOUR_KEY to the URL or configure it in GHL Custom Values.');
+        return;
+      }
+
+      setStatus(false, 'Loading...');
+      document.getElementById('errorBanner').classList.remove('show');
+
+      // Set tiles to loading state
+      ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
+        const el = document.getElementById('tile-' + id);
+        if (el) { el.textContent = '…'; el.classList.add('loading'); }
+      });
+
+      try {
+        // Fetch leads for counts
+        const [leadsData, systemLinksData] = await Promise.allSettled([
+          fetchIDX('leads/lead'),
+          fetchIDX('clients/systemlinks')
+        ]);
+
+        const leads = leadsData.status === 'fulfilled' && leadsData.value ? leadsData.value : {};
+        const leadList = Object.values(leads);
+        const leadCount = leadList.length;
+
+        // Build activity from lead data
+        allActivity = [];
+        let totalViews = 0;
+        let totalSearches = 0;
+        let totalSaved = 0;
+
+        leadList.forEach(lead => {
+          if (lead.savedSearches) totalSearches += parseInt(lead.savedSearches) || 0;
+          if (lead.savedProperties) totalSaved += parseInt(lead.savedProperties) || 0;
+
+          // Add registration event
+          allActivity.push({
+            type: 'registration',
+            leadName: `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || 'New Lead',
+            email: lead.email || '',
+            timeAgo: lead.created ? timeAgo(lead.created) : 'Recently',
+            imageUrl: null
+          });
+        });
+
+        const totalActivity = allActivity.length;
+
+        // Update tiles
+        setTile('tile-activity', totalActivity);
+        setTile('tile-views', totalViews);
+        setTile('tile-searches', totalSearches);
+        setTile('tile-saved', totalSaved);
+        setTile('tile-savedSearches', totalSearches);
+        setTile('tile-links', 0);
+        setTile('tile-leads', leadCount);
+        setTile('tile-anon', 0);
+
+        ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
+          const el = document.getElementById('tile-' + id);
+          if (el) el.classList.remove('loading');
+        });
+
+        renderActivity(allActivity);
+        setStatus(true, `Connected to IDX Broker · Last updated ${new Date().toLocaleTimeString()}`);
+
+      } catch (err) {
+        setStatus(false, 'Connection error');
+        showError(`Could not load IDX Broker data. Error: ${err.message}`);
+        ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
+          const el = document.getElementById('tile-' + id);
+          if (el) { el.textContent = '—'; el.classList.remove('loading'); }
+        });
+      }
+    }
+
+    function timeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr * 1000);
+      const days = Math.floor(diff / 86400000);
+      if (days === 0) return 'Today';
+      if (days === 1) return '1 day ago';
+      if (days < 30) return `${days} days ago`;
+      return `${Math.floor(days/30)} month${Math.floor(days/30) > 1 ? 's' : ''} ago`;
+    }
+
+    // Auto-load on start
+    loadDashboard();
+  </script>
+</body>
+</html>
