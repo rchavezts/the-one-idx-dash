@@ -147,7 +147,12 @@
       padding: 18px 20px;
       box-shadow: var(--shadow);
       transition: box-shadow 0.2s, transform 0.2s;
-      cursor: default;
+      cursor: pointer;
+    }
+
+    .tile.tile-active {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(44,128,204,0.2);
     }
 
     .tile:hover {
@@ -582,7 +587,7 @@
 
     <!-- STAT TILES -->
     <div class="tiles-grid">
-      <div class="tile">
+      <div class="tile" onclick="filterByType('all')">
         <div class="tile-header">
           <span class="tile-label">Latest Activity</span>
           <div class="tile-icon blue">
@@ -593,7 +598,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('viewed')">
         <div class="tile-header">
           <span class="tile-label">Listing Views</span>
           <div class="tile-icon navy">
@@ -604,7 +609,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('search')">
         <div class="tile-header">
           <span class="tile-label">Recent Searches</span>
           <div class="tile-icon blue">
@@ -615,7 +620,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('saved')">
         <div class="tile-header">
           <span class="tile-label">Saved Properties</span>
           <div class="tile-icon red">
@@ -626,7 +631,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('search')">
         <div class="tile-header">
           <span class="tile-label">Saved Searches</span>
           <div class="tile-icon purple">
@@ -637,7 +642,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('viewed')">
         <div class="tile-header">
           <span class="tile-label">Viewed Saved Link</span>
           <div class="tile-icon orange">
@@ -648,7 +653,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('registration')">
         <div class="tile-header">
           <span class="tile-label">New Leads</span>
           <div class="tile-icon green">
@@ -659,7 +664,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile">
+      <div class="tile" onclick="filterByType('anon')">
         <div class="tile-header">
           <span class="tile-label">Anonymous Activity</span>
           <div class="tile-icon navy">
@@ -677,7 +682,7 @@
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input class="search-input" type="text" placeholder="Search for lead..." id="leadSearch" oninput="filterActivity()" />
       </div>
-      <button class="create-btn" onclick="window.open('https://middleware.idxbroker.com/mgmt/leadlist', '_blank')">
+      <button class="create-btn" onclick="window.open('https://middleware.idxbroker.com/mgmt/leads', '_blank')">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Create Lead
       </button>
@@ -709,7 +714,7 @@
 
     const API_KEY = getApiKey();
 
-async function fetchIDX(endpoint) {
+    async function fetchIDX(endpoint) {
       const url = `https://the-one-idx-proxy.rchavezts.workers.dev/?apikey=${API_KEY}&endpoint=${endpoint}`;
       const res = await fetch(url);
       if (res.status === 204) return null;
@@ -738,6 +743,12 @@ async function fetchIDX(endpoint) {
     }
 
     let allActivity = [];
+
+    function filterByType(type) {
+      document.querySelectorAll('.tile').forEach(t => t.classList.remove('tile-active'));
+      const filtered = type === 'all' ? allActivity : allActivity.filter(a => a.type === type);
+      renderActivity(filtered);
+    }
 
     function filterActivity() {
       const q = document.getElementById('leadSearch').value.toLowerCase();
