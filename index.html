@@ -365,6 +365,17 @@
     }
 
     .card-image-placeholder svg { width: 32px; height: 32px; fill: #cbd5e1; }
+    .reg-placeholder { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+    .reg-placeholder svg { fill: #16a34a; }
+    .reg-placeholder span { color: #16a34a; }
+    .view-placeholder { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+    .view-placeholder svg { fill: #2c80cc; }
+    .view-placeholder span { color: #2c80cc; }
+    .search-placeholder { background: linear-gradient(135deg, #faf5ff, #ede9fe); }
+    .search-placeholder svg { fill: #7c3aed; }
+    .search-placeholder span { color: #7c3aed; }
+    .view-btn { color: var(--brand); border-right: none; }
+    .view-btn:hover { background: #eff3f9; }
     .card-image-placeholder span { font-size: 11px; color: #94a3b8; font-weight: 500; }
 
     .card-body { padding: 14px 16px; }
@@ -869,14 +880,50 @@
           if (lead.recentlyViewedListings) totalViews += (lead.recentlyViewedListings || []).length;
           if (lead.totalViewedIDXPages) totalAnon += parseInt(lead.totalViewedIDXPages) || 0;
 
-          // Add registration event
+          const leadName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email || 'New Lead';
+          const email = lead.email || '';
+
+          // Registration card
           allActivity.push({
             type: 'registration',
-            leadName: `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email || 'New Lead',
-            email: lead.email || '',
+            leadName,
+            email,
             timeAgo: lead.subscribeDate ? timeAgo(new Date(lead.subscribeDate).getTime() / 1000) : 'Recently',
-            imageUrl: null
+            url: null
           });
+
+          // Viewed Listing cards
+          if (Array.isArray(lead.recentlyViewedListings)) {
+            lead.recentlyViewedListings.forEach(url => {
+              // Extract listing address hint from URL slug
+              const slug = url.split('/').pop() || '';
+              const addressHint = slug.replace(/-/g, ' ').replace(/[A-Z0-9]+$/, '').trim();
+              allActivity.push({
+                type: 'viewed',
+                leadName,
+                email,
+                timeAgo: lead.lastActivity === 'viewListing' ? 'Recently' : 'Recently',
+                url,
+                addressHint: addressHint || 'View Listing'
+              });
+            });
+          }
+
+          // Saved Search cards
+          if (Array.isArray(lead.recentlyViewedSearchResults)) {
+            lead.recentlyViewedSearchResults.forEach(url => {
+              const params = url.includes('?') ? url.split('?')[1] : '';
+              const searchHint = params ? decodeURIComponent(params).replace(/&/g, ' · ').replace(/=/g, ': ').substring(0, 60) : 'Saved Search';
+              allActivity.push({
+                type: 'search',
+                leadName,
+                email,
+                timeAgo: 'Recently',
+                url,
+                addressHint: searchHint
+              });
+            });
+          }
         });
 
         const totalActivity = allActivity.length;
