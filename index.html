@@ -638,7 +638,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('saved')">
+      <div class="tile" onclick="filterByType('savedprop')">
         <div class="tile-header">
           <span class="tile-label">Saved Properties</span>
           <div class="tile-icon red">
@@ -660,7 +660,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('viewed')">
+      <div class="tile" onclick="filterByType('search')">
         <div class="tile-header">
           <span class="tile-label">Viewed Saved Link</span>
           <div class="tile-icon orange">
@@ -682,7 +682,8 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-<div class="tile" onclick="filterByType('hotlead')" id="tile-hotlead-card" style="cursor:pointer">        <div class="tile-header">
+      <div class="tile" onclick="filterByType('registration')" id="tile-hotlead-card" style="cursor:pointer">
+        <div class="tile-header">
           <span class="tile-label">Most Active Lead</span>
           <div class="tile-icon orange">
             <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -766,6 +767,19 @@
       let filtered;
       if (type === 'all') {
         filtered = allActivity.filter(a => a.type !== 'hotlead');
+      } else if (type === 'savedprop') {
+        // Saved properties count is available but individual cards are not accessible via IDX Broker API
+        filtered = [];
+        const grid = document.getElementById('activityGrid');
+        const count = document.getElementById('activityCount');
+        if (count) count.textContent = '0 events';
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
+            <div class="empty-title">Saved Properties</div>
+            <div class="empty-sub">The total count is tracked in the tile above. Individual saved property details are not available through the IDX Broker API — leads can view their saved properties by logging into the IDX search portal.</div>
+          </div>`;
+        return;
       } else {
         filtered = allActivity.filter(a => a.type === type);
       }
@@ -803,7 +817,7 @@
         const isSaved = a.type === 'saved';
         const isHotlead = a.type === 'hotlead';
 
-       const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? (idx === 0 ? 'Top Lead' : 'Active Lead') : 'Saved Property';
+        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? 'Top Lead' : 'Saved Property';
         const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'saved' : isHotlead ? '' : 'saved';
 
         const typeIcon = isRegistration
