@@ -376,6 +376,13 @@
     .search-placeholder span { color: #7c3aed; }
     .view-btn { color: var(--brand); border-right: none; }
     .view-btn:hover { background: #eff3f9; }
+    .hotlead-placeholder { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+    .hotlead-placeholder svg { fill: #d97706; }
+    .hotlead-placeholder span { color: #d97706; }
+    .activity-card.top-lead { border: 2px solid #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+    .activity-score { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+    .activity-score span { color: var(--text); font-weight: 600; }
+    .view-btn:hover { background: #eff3f9; }
     .card-image-placeholder span { font-size: 11px; color: #94a3b8; font-weight: 500; }
 
     .card-body { padding: 14px 16px; }
@@ -757,7 +764,12 @@
 
     function filterByType(type) {
       document.querySelectorAll('.tile').forEach(t => t.classList.remove('tile-active'));
-      const filtered = type === 'all' ? allActivity : allActivity.filter(a => a.type === type);
+      let filtered;
+      if (type === 'all') {
+        filtered = allActivity.filter(a => a.type !== 'hotlead');
+      } else {
+        filtered = allActivity.filter(a => a.type === type);
+      }
       renderActivity(filtered);
     }
 
@@ -785,14 +797,15 @@
         return;
       }
 
-      grid.innerHTML = items.map(a => {
+      grid.innerHTML = items.map((a, idx) => {
         const isRegistration = a.type === 'registration';
         const isViewed = a.type === 'viewed';
         const isSearch = a.type === 'search';
         const isSaved = a.type === 'saved';
+        const isHotlead = a.type === 'hotlead';
 
-        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : 'Saved Property';
-        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'saved' : 'saved';
+        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? 'Top Lead' : 'Saved Property';
+        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'saved' : isHotlead ? '' : 'saved';
 
         const typeIcon = isRegistration
           ? `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`
@@ -800,6 +813,8 @@
           ? `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
           : isSearch
           ? `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`
+          : isHotlead
+          ? `<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`
           : `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
 
         const initials = (a.leadName || 'L').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
@@ -810,6 +825,8 @@
           ? `<div class="card-image-placeholder view-placeholder"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>${a.addressHint || 'Viewed Listing'}</span></div>`
           : isSearch
           ? `<div class="card-image-placeholder search-placeholder"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Search Activity</span></div>`
+          : isHotlead
+          ? `<div class="card-image-placeholder hotlead-placeholder"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>${idx === 0 ? '🏆 Most Active' : `#${idx + 1} Active`}</span></div>`
           : `<div class="card-image-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Saved Property</span></div>`;
 
         const viewBtn = a.url ? `
@@ -819,13 +836,14 @@
             </button>` : '';
 
         return `
-        <div class="activity-card">
+        <div class="activity-card${isHotlead && idx === 0 ? ' top-lead' : ''}">
           ${cardBg}
           <div class="card-body">
             <div class="card-type">
               <span class="card-type-badge ${typeClass}">${typeIcon}${typeLabel}</span>
             </div>
-            ${a.addressHint && !isRegistration ? `<div class="card-address">${a.addressHint}</div>` : ''}
+            ${a.addressHint && !isRegistration && !isHotlead ? `<div class="card-address">${a.addressHint}</div>` : ''}
+            ${isHotlead && a.score !== undefined ? `<div class="activity-score"><span>${a.score}</span> total events · <span>${a.views || 0}</span> views · <span>${a.saved || 0}</span> saved · <span>${a.searches || 0}</span> searches</div>` : ''}
             ${a.email ? `<div class="card-email">${a.email}</div>` : ''}
             <div class="card-meta">
               <div class="card-lead">
@@ -977,25 +995,39 @@
         setTile('tile-savedSearches', totalSearches);
         setTile('tile-links', 0);
         setTile('tile-leads', leadCount);
-        // Most Active Lead
-        let hotLead = null;
-        let hotScore = 0;
-        leadList.forEach(lead => {
-          if (!lead) return;
-          const score = (parseInt(lead.savedProperties) || 0) + 
-                        (parseInt(lead.savedSearches) || 0) + 
-                        ((lead.recentlyViewedListings || []).length);
-          if (score > hotScore) {
-            hotScore = score;
-            hotLead = lead;
-          }
+        // Most Active Lead — build ranked list
+        const hotLeads = leadList
+          .filter(l => l)
+          .map(lead => {
+            const views = (lead.recentlyViewedListings || []).length;
+            const saved = parseInt(lead.savedProperties) || 0;
+            const searches = parseInt(lead.savedSearches) || 0;
+            const score = views + saved + searches;
+            return { lead, score, views, saved, searches };
+          })
+          .filter(l => l.score > 0)
+          .sort((a, b) => b.score - a.score);
+
+        // Build hotlead activity items for filtering
+        hotLeads.forEach(({ lead, score, views, saved, searches }) => {
+          const name = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email || 'Unknown';
+          allActivity.push({
+            type: 'hotlead',
+            leadName: name,
+            email: lead.email || '',
+            score, views, saved, searches,
+            timeAgo: lead.lastActivityDate || 'Recently',
+            url: null
+          });
         });
-        if (hotLead) {
-          const name = `${hotLead.firstName || ''} ${hotLead.lastName || ''}`.trim() || hotLead.email || 'Unknown';
+
+        if (hotLeads.length > 0) {
+          const top = hotLeads[0];
+          const name = `${top.lead.firstName || ''} ${top.lead.lastName || ''}`.trim() || top.lead.email || 'Unknown';
           const el = document.getElementById('tile-hotlead');
           if (el) el.textContent = name;
           const sub = document.getElementById('tile-hotlead-sub');
-          if (sub) sub.textContent = `${hotScore} activity event${hotScore !== 1 ? 's' : ''}`;
+          if (sub) sub.textContent = `${top.score} activity event${top.score !== 1 ? 's' : ''}`;
         }
 
         ['activity','views','searches','saved','savedSearches','links','leads'].forEach(id => {
