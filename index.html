@@ -850,8 +850,9 @@
           fetchIDX('clients/systemlinks')
         ]);
 
-        const leads = leadsData.status === 'fulfilled' && leadsData.value ? leadsData.value : {};
-        const leadList = Object.values(leads).filter(l => l !== null && typeof l === 'object');
+        const leadsRaw = leadsData.status === 'fulfilled' && leadsData.value ? leadsData.value : {};
+        // API returns {total, data:[...]} structure
+        const leadList = Array.isArray(leadsRaw.data) ? leadsRaw.data.filter(l => l !== null && typeof l === 'object') : Object.values(leadsRaw).filter(l => l !== null && typeof l === 'object');
         const leadCount = leadList.length;
 
         // Build activity from lead data
@@ -859,18 +860,21 @@
         let totalViews = 0;
         let totalSearches = 0;
         let totalSaved = 0;
+        let totalAnon = 0;
 
         leadList.forEach(lead => {
           if (!lead) return;
           if (lead.savedSearches) totalSearches += parseInt(lead.savedSearches) || 0;
           if (lead.savedProperties) totalSaved += parseInt(lead.savedProperties) || 0;
+          if (lead.recentlyViewedListings) totalViews += (lead.recentlyViewedListings || []).length;
+          if (lead.totalViewedIDXPages) totalAnon += parseInt(lead.totalViewedIDXPages) || 0;
 
           // Add registration event
           allActivity.push({
             type: 'registration',
-            leadName: `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || 'New Lead',
+            leadName: `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email || 'New Lead',
             email: lead.email || '',
-            timeAgo: lead.created ? timeAgo(lead.created) : 'Recently',
+            timeAgo: lead.subscribeDate ? timeAgo(new Date(lead.subscribeDate).getTime() / 1000) : 'Recently',
             imageUrl: null
           });
         });
@@ -885,7 +889,7 @@
         setTile('tile-savedSearches', totalSearches);
         setTile('tile-links', 0);
         setTile('tile-leads', leadCount);
-        setTile('tile-anon', 0);
+        setTile('tile-anon', totalAnon);
 
         ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
           const el = document.getElementById('tile-' + id);
