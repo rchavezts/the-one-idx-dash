@@ -153,7 +153,9 @@
     .tile.tile-active {
       border-color: var(--blue);
       box-shadow: 0 0 0 2px rgba(44,128,204,0.2);
+      background: #f0f7ff;
     }
+    .tile.tile-active .tile-label { color: var(--blue); }
 
     .tile:hover {
       box-shadow: var(--shadow-hover);
@@ -371,9 +373,9 @@
     .view-placeholder { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
     .view-placeholder svg { fill: #2c80cc; }
     .view-placeholder span { color: #2c80cc; }
-    .search-placeholder { background: linear-gradient(135deg, #faf5ff, #ede9fe); }
-    .search-placeholder svg { fill: #7c3aed; }
-    .search-placeholder span { color: #7c3aed; }
+    .search-placeholder { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+    .search-placeholder svg { fill: #059669; }
+    .search-placeholder span { color: #059669; }
     .view-btn { color: var(--brand); border-right: none; }
     .view-btn:hover { background: #eff3f9; }
     .hotlead-placeholder { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
@@ -407,6 +409,7 @@
 
     .card-type-badge svg { width: 12px; height: 12px; fill: currentColor; }
     .card-type-badge.saved { color: var(--accent); }
+    .card-type-badge.search { color: #059669; }
     .card-type-badge.registration { color: var(--success); }
 
     .card-views {
@@ -764,22 +767,23 @@
 
     function filterByType(type) {
       document.querySelectorAll('.tile').forEach(t => t.classList.remove('tile-active'));
+      // Highlight the clicked tile
+      const tileMap = {
+        'all': 0, 'viewed': 1, 'search': 2, 'savedprop': 3,
+        'search2': 4, 'search3': 5, 'registration': 6, 'hotlead': 7
+      };
+      const tiles = document.querySelectorAll('.tile');
+      if (type === 'all' && tiles[0]) tiles[0].classList.add('tile-active');
+      if (type === 'viewed' && tiles[1]) tiles[1].classList.add('tile-active');
+      if (type === 'search' && tiles[2]) tiles[2].classList.add('tile-active');
+      if (type === 'savedprop' && tiles[3]) tiles[3].classList.add('tile-active');
+      if (type === 'registration' && tiles[6]) tiles[6].classList.add('tile-active');
+      if (type === 'hotlead' && tiles[7]) tiles[7].classList.add('tile-active');
       let filtered;
       if (type === 'all') {
         filtered = allActivity.filter(a => a.type !== 'hotlead');
       } else if (type === 'savedprop') {
-        // Saved properties count is available but individual cards are not accessible via IDX Broker API
-        filtered = [];
-        const grid = document.getElementById('activityGrid');
-        const count = document.getElementById('activityCount');
-        if (count) count.textContent = '0 events';
-        grid.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div>
-            <div class="empty-title">Saved Properties</div>
-            <div class="empty-sub">The total count is tracked in the tile above. Individual saved property details are not available through the IDX Broker API — leads can view their saved properties by logging into the IDX search portal.</div>
-          </div>`;
-        return;
+        filtered = allActivity.filter(a => a.type === 'savedprop');
       } else {
         filtered = allActivity.filter(a => a.type === type);
       }
@@ -816,9 +820,10 @@
         const isSearch = a.type === 'search';
         const isSaved = a.type === 'saved';
         const isHotlead = a.type === 'hotlead';
+        const isSavedProp = a.type === 'savedprop';
 
         const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? 'Top Lead' : 'Saved Property';
-        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'saved' : isHotlead ? '' : 'saved';
+        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'search' : isHotlead ? '' : isSavedProp ? 'saved' : 'saved';
 
         const typeIcon = isRegistration
           ? `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`
@@ -840,7 +845,9 @@
           ? `<div class="card-image-placeholder search-placeholder"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Search Activity</span></div>`
           : isHotlead
           ? `<div class="card-image-placeholder hotlead-placeholder"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>${idx === 0 ? '🏆 Most Active' : `#${idx + 1} Active`}</span></div>`
-          : `<div class="card-image-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Saved Property</span></div>`;
+          : isSavedProp && a.imageUrl
+          ? `<img src="${a.imageUrl}" style="width:100%;height:160px;object-fit:cover;" alt="Property" onerror="this.style.display='none'">`
+          : `<div class="card-image-placeholder" style="background:linear-gradient(135deg,#fff1f2,#fecdd3)"><svg viewBox="0 0 24 24" style="fill:#c41230"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span style="color:#c41230">Saved Property</span></div>`;
 
         const viewBtn = a.url ? `
             <button class="card-action view-btn" onclick="window.open('${a.url}', '_blank')">
@@ -855,7 +862,10 @@
             <div class="card-type">
               <span class="card-type-badge ${typeClass}">${typeIcon}${typeLabel}</span>
             </div>
-            ${a.addressHint && !isRegistration && !isHotlead ? `<div class="card-address">${a.addressHint}</div>` : ''}
+            ${a.addressHint && !isRegistration && !isHotlead && !isSavedProp ? `<div class="card-address">${a.addressHint}</div>` : ''}
+            ${isSavedProp && a.price ? `<div class="card-price">${a.price}</div>` : ''}
+            ${isSavedProp && a.address ? `<div class="card-address">${a.address}</div>` : ''}
+            ${isSavedProp && a.details ? `<div class="card-address" style="margin-top:-6px">${a.details}</div>` : ''}
             ${isHotlead && a.score !== undefined ? `<div class="activity-score"><span>${a.score}</span> total events · <span>${a.views || 0}</span> views · <span>${a.saved || 0}</span> saved · <span>${a.searches || 0}</span> searches</div>` : ''}
             ${a.email ? `<div class="card-email">${a.email}</div>` : ''}
             <div class="card-meta">
@@ -1048,7 +1058,41 @@
           if (el) el.classList.remove('loading');
         });
 
-        renderActivity(allActivity);
+        // Fetch saved properties for all leads that have them
+        const savedPropLeads = leadList.filter(l => l && parseInt(l.savedProperties) > 0);
+        const savedPropResults = await Promise.allSettled(
+          savedPropLeads.map(lead => fetchIDX(`leads/property/${lead.id}`))
+        );
+
+        savedPropResults.forEach((result, i) => {
+          if (result.status !== 'fulfilled' || !result.value) return;
+          const lead = savedPropLeads[i];
+          const leadName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || lead.email || 'New Lead';
+          const email = lead.email || '';
+          const props = Array.isArray(result.value) ? result.value : Object.values(result.value);
+          props.forEach(prop => {
+            if (!prop || typeof prop !== 'object') return;
+            const imageUrl = prop.image && prop.image['1'] ? prop.image['1'].url : null;
+            const address = `${prop.address || ''} ${prop.cityName || ''} ${prop.state || ''}`.trim();
+            const price = prop.listingPrice || prop.rntLsePrice || '';
+            const beds = prop.bedrooms ? `${prop.bedrooms} bd` : '';
+            const baths = prop.fullBaths ? `${prop.fullBaths} ba` : '';
+            const details = [beds, baths, prop.propType].filter(Boolean).join(' · ');
+            allActivity.push({
+              type: 'savedprop',
+              leadName,
+              email,
+              timeAgo: prop.created ? timeAgo(new Date(prop.created).getTime() / 1000) : 'Recently',
+              url: prop.fullDetailsURL || null,
+              imageUrl,
+              address,
+              price,
+              details
+            });
+          });
+        });
+
+        renderActivity(allActivity.filter(a => a.type !== 'hotlead'));
         setStatus(true, `Connected to IDX Broker · Last updated ${new Date().toLocaleTimeString()}`);
 
       } catch (err) {
