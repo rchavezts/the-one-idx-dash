@@ -373,9 +373,12 @@
     .view-placeholder { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
     .view-placeholder svg { fill: #2c80cc; }
     .view-placeholder span { color: #2c80cc; }
-    .search-placeholder { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
-    .search-placeholder svg { fill: #059669; }
-    .search-placeholder span { color: #059669; }
+    .search-placeholder { background: linear-gradient(135deg, #fff7ed, #ffedd5); }
+    .search-placeholder svg { fill: #ea580c; }
+    .search-placeholder span { color: #ea580c; }
+    .savedsearch-placeholder { background: linear-gradient(135deg, #faf5ff, #ede9fe); }
+    .savedsearch-placeholder svg { fill: #7c3aed; }
+    .savedsearch-placeholder span { color: #7c3aed; }
     .view-btn { color: var(--brand); border-right: none; }
     .view-btn:hover { background: #eff3f9; }
     .hotlead-placeholder { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
@@ -409,7 +412,8 @@
 
     .card-type-badge svg { width: 12px; height: 12px; fill: currentColor; }
     .card-type-badge.saved { color: var(--accent); }
-    .card-type-badge.search { color: #059669; }
+    .card-type-badge.search { color: #ea580c; }
+    .card-type-badge.savedsearch { color: #7c3aed; }
     .card-type-badge.registration { color: var(--success); }
 
     .card-views {
@@ -608,7 +612,7 @@
 
     <!-- STAT TILES -->
     <div class="tiles-grid">
-      <div class="tile" onclick="filterByType('all')">
+      <div class="tile" onclick="filterByType('all')" data-filter="all">
         <div class="tile-header">
           <span class="tile-label">Latest Activity</span>
           <div class="tile-icon blue">
@@ -619,7 +623,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('viewed')">
+      <div class="tile" onclick="filterByType('viewed')" data-filter="viewed">
         <div class="tile-header">
           <span class="tile-label">Listing Views</span>
           <div class="tile-icon navy">
@@ -630,7 +634,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('search')">
+      <div class="tile" onclick="filterByType('search')" data-filter="search">
         <div class="tile-header">
           <span class="tile-label">Recent Searches</span>
           <div class="tile-icon blue">
@@ -641,7 +645,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('savedprop')">
+      <div class="tile" onclick="filterByType('savedprop')" data-filter="savedprop">
         <div class="tile-header">
           <span class="tile-label">Saved Properties</span>
           <div class="tile-icon red">
@@ -652,7 +656,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('search')">
+      <div class="tile" onclick="filterByType('savedsearch')" data-filter="savedsearch">
         <div class="tile-header">
           <span class="tile-label">Saved Searches</span>
           <div class="tile-icon purple">
@@ -663,18 +667,9 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('search')">
-        <div class="tile-header">
-          <span class="tile-label">Viewed Saved Link</span>
-          <div class="tile-icon orange">
-            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-          </div>
-        </div>
-        <div class="tile-value" id="tile-links">—</div>
-        <div class="tile-sub">Last 30 days</div>
-      </div>
 
-      <div class="tile" onclick="filterByType('registration')">
+
+      <div class="tile" onclick="filterByType('registration')" data-filter="registration" id="tile-newleads">
         <div class="tile-header">
           <span class="tile-label">New Leads</span>
           <div class="tile-icon green">
@@ -685,7 +680,7 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('registration')" id="tile-hotlead-card" style="cursor:pointer">
+      <div class="tile" onclick="filterByType('hotlead')" data-filter="hotlead" id="tile-hotlead-card">
         <div class="tile-header">
           <span class="tile-label">Most Active Lead</span>
           <div class="tile-icon orange">
@@ -767,18 +762,10 @@
 
     function filterByType(type) {
       document.querySelectorAll('.tile').forEach(t => t.classList.remove('tile-active'));
-      // Highlight the clicked tile
-      const tileMap = {
-        'all': 0, 'viewed': 1, 'search': 2, 'savedprop': 3,
-        'search2': 4, 'search3': 5, 'registration': 6, 'hotlead': 7
-      };
-      const tiles = document.querySelectorAll('.tile');
-      if (type === 'all' && tiles[0]) tiles[0].classList.add('tile-active');
-      if (type === 'viewed' && tiles[1]) tiles[1].classList.add('tile-active');
-      if (type === 'search' && tiles[2]) tiles[2].classList.add('tile-active');
-      if (type === 'savedprop' && tiles[3]) tiles[3].classList.add('tile-active');
-      if (type === 'registration' && tiles[6]) tiles[6].classList.add('tile-active');
-      if (type === 'hotlead' && tiles[7]) tiles[7].classList.add('tile-active');
+      // Highlight active tile by matching data-filter attribute
+      document.querySelectorAll('.tile[data-filter]').forEach(t => {
+        if (t.getAttribute('data-filter') === type) t.classList.add('tile-active');
+      });
       let filtered;
       if (type === 'all') {
         filtered = allActivity.filter(a => a.type !== 'hotlead');
@@ -821,9 +808,10 @@
         const isSaved = a.type === 'saved';
         const isHotlead = a.type === 'hotlead';
         const isSavedProp = a.type === 'savedprop';
+        const isSavedSearch = a.type === 'savedsearch';
 
         const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? 'Top Lead' : 'Saved Property';
-        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'search' : isHotlead ? '' : isSavedProp ? 'saved' : 'saved';
+        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'search' : isSavedSearch ? 'savedsearch' : isHotlead ? '' : isSavedProp ? 'saved' : 'saved';
 
         const typeIcon = isRegistration
           ? `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`
@@ -842,7 +830,9 @@
           : isViewed
           ? `<div class="card-image-placeholder view-placeholder"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>${a.addressHint || 'Viewed Listing'}</span></div>`
           : isSearch
-          ? `<div class="card-image-placeholder search-placeholder"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Search Activity</span></div>`
+          ? `<div class="card-image-placeholder search-placeholder"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Recent Search</span></div>`
+          : isSavedSearch
+          ? `<div class="card-image-placeholder savedsearch-placeholder"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg><span>Saved Search</span></div>`
           : isHotlead
           ? `<div class="card-image-placeholder hotlead-placeholder"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>${idx === 0 ? '🏆 Most Active' : `#${idx + 1} Active`}</span></div>`
           : isSavedProp && a.imageUrl
@@ -991,13 +981,16 @@
             });
           }
 
-          // Saved Search cards
+          // Recent Search cards + Saved Search cards (both from same array)
           if (Array.isArray(lead.recentlyViewedSearchResults)) {
-            lead.recentlyViewedSearchResults.forEach(url => {
+            lead.recentlyViewedSearchResults.forEach((url, i) => {
               const params = url.includes('?') ? url.split('?')[1] : '';
-              const searchHint = params ? formatSearchParams(params) : 'Saved Search';
+              const searchHint = params ? formatSearchParams(params) : 'Search';
+              // Mark as savedsearch if within the saved count, otherwise recent search
+              const savedCount = parseInt(lead.savedSearches) || 0;
+              const type = i < savedCount ? 'savedsearch' : 'search';
               allActivity.push({
-                type: 'search',
+                type,
                 leadName,
                 email,
                 timeAgo: 'Recently',
@@ -1016,7 +1009,7 @@
         setTile('tile-searches', totalSearches);
         setTile('tile-saved', totalSaved);
         setTile('tile-savedSearches', totalSearches);
-        setTile('tile-links', 0);
+
         setTile('tile-leads', leadCount);
         // Most Active Lead — build ranked list
         const hotLeads = leadList
