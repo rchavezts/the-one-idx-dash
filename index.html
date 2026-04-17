@@ -803,7 +803,7 @@
         const isSaved = a.type === 'saved';
         const isHotlead = a.type === 'hotlead';
 
-        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? 'Top Lead' : 'Saved Property';
+       const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? (idx === 0 ? 'Top Lead' : 'Active Lead') : 'Saved Property';
         const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'saved' : isHotlead ? '' : 'saved';
 
         const typeIcon = isRegistration
