@@ -675,15 +675,15 @@
         <div class="tile-sub">Last 30 days</div>
       </div>
 
-      <div class="tile" onclick="filterByType('anon')">
+      <div class="tile" onclick="filterByType('registration')" id="tile-hotlead-card" style="cursor:pointer">
         <div class="tile-header">
-          <span class="tile-label">Anonymous Activity</span>
-          <div class="tile-icon navy">
-            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="tile-label">Most Active Lead</span>
+          <div class="tile-icon orange">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           </div>
         </div>
-        <div class="tile-value" id="tile-anon">—</div>
-        <div class="tile-sub">Last 30 days</div>
+        <div class="tile-value" id="tile-hotlead" style="font-size:16px;letter-spacing:-0.3px;line-height:1.2">—</div>
+        <div class="tile-sub" id="tile-hotlead-sub">Last 30 days</div>
       </div>
     </div>
 
@@ -890,7 +890,7 @@
       document.getElementById('errorBanner').classList.remove('show');
 
       // Set tiles to loading state
-      ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
+      ['activity','views','searches','saved','savedSearches','links','leads'].forEach(id => {
         const el = document.getElementById('tile-' + id);
         if (el) { el.textContent = '…'; el.classList.add('loading'); }
       });
@@ -977,9 +977,28 @@
         setTile('tile-savedSearches', totalSearches);
         setTile('tile-links', 0);
         setTile('tile-leads', leadCount);
-        setTile('tile-anon', totalAnon);
+        // Most Active Lead
+        let hotLead = null;
+        let hotScore = 0;
+        leadList.forEach(lead => {
+          if (!lead) return;
+          const score = (parseInt(lead.savedProperties) || 0) + 
+                        (parseInt(lead.savedSearches) || 0) + 
+                        ((lead.recentlyViewedListings || []).length);
+          if (score > hotScore) {
+            hotScore = score;
+            hotLead = lead;
+          }
+        });
+        if (hotLead) {
+          const name = `${hotLead.firstName || ''} ${hotLead.lastName || ''}`.trim() || hotLead.email || 'Unknown';
+          const el = document.getElementById('tile-hotlead');
+          if (el) el.textContent = name;
+          const sub = document.getElementById('tile-hotlead-sub');
+          if (sub) sub.textContent = `${hotScore} activity event${hotScore !== 1 ? 's' : ''}`;
+        }
 
-        ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
+        ['activity','views','searches','saved','savedSearches','links','leads'].forEach(id => {
           const el = document.getElementById('tile-' + id);
           if (el) el.classList.remove('loading');
         });
@@ -990,7 +1009,7 @@
       } catch (err) {
         setStatus(false, 'Connection error');
         showError(`Could not load IDX Broker data. Error: ${err.message}`);
-        ['activity','views','searches','saved','savedSearches','links','leads','anon'].forEach(id => {
+        ['activity','views','searches','saved','savedSearches','links','leads'].forEach(id => {
           const el = document.getElementById('tile-' + id);
           if (el) { el.textContent = '—'; el.classList.remove('loading'); }
         });
