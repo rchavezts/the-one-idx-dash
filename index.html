@@ -787,30 +787,45 @@
 
       grid.innerHTML = items.map(a => {
         const isRegistration = a.type === 'registration';
+        const isViewed = a.type === 'viewed';
+        const isSearch = a.type === 'search';
         const isSaved = a.type === 'saved';
-        const typeLabel = isRegistration ? 'Registration' : isSaved ? 'Saved Property' : 'Viewed Listing';
-        const typeClass = isRegistration ? 'registration' : isSaved ? 'saved' : '';
+
+        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : 'Saved Property';
+        const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'saved' : 'saved';
+
         const typeIcon = isRegistration
           ? `<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`
-          : isSaved
-          ? `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`
-          : `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+          : isViewed
+          ? `<svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+          : isSearch
+          ? `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`
+          : `<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
 
         const initials = (a.leadName || 'L').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
 
+        const cardBg = isRegistration
+          ? `<div class="card-image-placeholder reg-placeholder"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>New Registration</span></div>`
+          : isViewed
+          ? `<div class="card-image-placeholder view-placeholder"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>${a.addressHint || 'Viewed Listing'}</span></div>`
+          : isSearch
+          ? `<div class="card-image-placeholder search-placeholder"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Search Activity</span></div>`
+          : `<div class="card-image-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/></svg><span>Saved Property</span></div>`;
+
+        const viewBtn = a.url ? `
+            <button class="card-action view-btn" onclick="window.open('${a.url}', '_blank')">
+              <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              View
+            </button>` : '';
+
         return `
         <div class="activity-card">
-          ${a.imageUrl
-            ? `<img class="card-image" src="${a.imageUrl}" alt="Property" onerror="this.outerHTML='<div class=\'card-image-placeholder\'><svg viewBox=\'0 0 24 24\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><polyline points=\'21 15 16 10 5 21\'/></svg><span>No Image</span></div>'">`
-            : `<div class="card-image-placeholder"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>No Image</span></div>`
-          }
+          ${cardBg}
           <div class="card-body">
             <div class="card-type">
               <span class="card-type-badge ${typeClass}">${typeIcon}${typeLabel}</span>
-              ${a.views ? `<span class="card-views"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>${a.views}</span>` : ''}
             </div>
-            ${a.price ? `<div class="card-price">${a.price}</div>` : ''}
-            ${a.address ? `<div class="card-address">${a.address}</div>` : ''}
+            ${a.addressHint && !isRegistration ? `<div class="card-address">${a.addressHint}</div>` : ''}
             ${a.email ? `<div class="card-email">${a.email}</div>` : ''}
             <div class="card-meta">
               <div class="card-lead">
@@ -833,6 +848,7 @@
               <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               SMS
             </button>
+            ${viewBtn}
           </div>
         </div>`;
       }).join('');
