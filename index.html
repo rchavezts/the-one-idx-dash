@@ -854,6 +854,31 @@
       }).join('');
     }
 
+    function formatSearchParams(paramStr) {
+      const map = {
+        lp: 'Min Price', hp: 'Max Price', bd: 'Beds', ba: 'Baths',
+        pt: 'Type', city: 'City', zip: 'Zip', sqft: 'Sq Ft',
+        idxID: null, // skip this one
+      };
+      const parts = [];
+      paramStr.split('&').forEach(pair => {
+        const [key, val] = pair.split('=');
+        if (!key || !val || map[key] === null) return;
+        const label = map[key] || key;
+        let display = decodeURIComponent(val);
+        if (key === 'lp' || key === 'hp') {
+          const num = parseInt(display);
+          display = num >= 1000000 ? '$' + (num/1000000).toFixed(1) + 'M' : '$' + (num/1000).toFixed(0) + 'K';
+        }
+        if (key === 'pt') {
+          const types = {'1':'Single Family','2':'Condo','3':'Townhouse','4':'Multi-Family','5':'Land','6':'Commercial'};
+          display = types[display] || display;
+        }
+        parts.push(`${label}: ${display}`);
+      });
+      return parts.length ? parts.join(' · ').substring(0, 80) : 'Saved Search';
+    }
+
     async function loadDashboard() {
       if (!API_KEY) {
         setStatus(false, 'No API key configured');
@@ -929,7 +954,7 @@
           if (Array.isArray(lead.recentlyViewedSearchResults)) {
             lead.recentlyViewedSearchResults.forEach(url => {
               const params = url.includes('?') ? url.split('?')[1] : '';
-              const searchHint = params ? decodeURIComponent(params).replace(/&/g, ' · ').replace(/=/g, ': ').substring(0, 60) : 'Saved Search';
+              const searchHint = params ? formatSearchParams(params) : 'Saved Search';
               allActivity.push({
                 type: 'search',
                 leadName,
