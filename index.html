@@ -991,7 +991,18 @@
               const searchHint = params ? formatSearchParams(params) : 'Search';
               // Mark as savedsearch if within the saved count, otherwise recent search
               const savedCount = parseInt(lead.savedSearches) || 0;
-              const type = i < savedCount ? 'savedsearch' : 'search';
+              const type = 'search';
+// Also add as savedsearch if within saved count
+if (i < savedCount) {
+  allActivity.push({
+    type: 'savedsearch',
+    leadName,
+    email,
+    timeAgo: 'Recently',
+    url,
+    addressHint: searchHint
+  });
+}
               allActivity.push({
                 type,
                 leadName,
