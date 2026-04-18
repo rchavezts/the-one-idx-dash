@@ -637,7 +637,7 @@
       <div class="tile" onclick="filterByType('search')" data-filter="search">
         <div class="tile-header">
           <span class="tile-label">Recent Searches</span>
-          <div class="tile-icon blue">
+          <div class="tile-icon orange">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
         </div>
@@ -811,7 +811,7 @@
         const isSavedProp = a.type === 'savedprop';
         const isSavedSearch = a.type === 'savedsearch';
 
-        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Saved Search' : isHotlead ? 'Top Lead' : 'Saved Property';
+        const typeLabel = isRegistration ? 'Registration' : isViewed ? 'Viewed Listing' : isSearch ? 'Recent Search' : isHotlead ? 'Top Lead' : 'Saved Property';
         const typeClass = isRegistration ? 'registration' : isViewed ? '' : isSearch ? 'search' : isSavedSearch ? 'savedsearch' : isHotlead ? '' : isSavedProp ? 'saved' : 'saved';
 
         const typeIcon = isRegistration
